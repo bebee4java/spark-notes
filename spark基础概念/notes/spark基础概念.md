@@ -1,6 +1,7 @@
 # spark基础概念
 
 1. RDD：
+
 RDD（Resilient Distributed Dataset）弹性分布式数据集：是Spark中的抽象数据结构类型，
 任何数据在Spark中都被表示为RDD。可以简单的看成看
 成是一个数组，里面的数据是分区存储的。不同分区的数据可以分布在不同的机器上，
@@ -8,6 +9,7 @@ RDD（Resilient Distributed Dataset）弹性分布式数据集：是Spark中的�
 - RDD是一个抽象类
 - RDD带泛型，支持多种数据类型：String，Long，Object
 - RDD是不可变的分区集合，支持并行计算
+
 RDD有如下5个特性：
 * A list of partitions
 
