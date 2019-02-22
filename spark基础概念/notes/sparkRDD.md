@@ -41,7 +41,7 @@ RDD创建:
     scala> val distFile = sc.textFile("data.txt")
     distFile: org.apache.spark.rdd.RDD[String] = data.txt MapPartitionsRDD[10] at textFile at <console>:26
 ```
-[sparkRDD创建示例代码: SparkRDDTest.scala](src/main/scala/org/spark/notes/SparkRDDTest.scala)
+[sparkRDD创建示例代码: SparkRDDTest.scala](../src/main/scala/org/spark/notes/SparkRDDTest.scala)
    
    
 
