@@ -20,8 +20,16 @@ object SparkRDDTest {
       */
     val rdd:RDD[Int] = sparkContext.parallelize(Array(1,2,3)) // 返回的是RDD[Int]类型
 
+    println(rdd.getClass.getSimpleName)  //ParallelCollectionRDD
+
     val cnt = rdd.count()
     println(s"rdd 数据条数为:$cnt")
+
+    val txt = sparkContext.textFile("spark基础概念/data/test.txt")
+    txt.foreach(line => println(line))
+
+    println(txt.getClass.getSimpleName) //MapPartitionsRDD
+
 
     sparkContext.stop() //程序结束 最好将sc关闭
 
