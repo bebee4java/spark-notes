@@ -25,11 +25,16 @@ object SparkRDDTest {
     val cnt = rdd.count()
     println(s"rdd 数据条数为:$cnt")
 
-    val txt = sparkContext.textFile("spark基础概念/data/test.txt")
+    // 目录下有子目录就不能只写到目录，但可以通过正则取所有文件
+    val txt = sparkContext.textFile("spark基础概念/data/*txt")
     txt.foreach(line => println(line))
 
     println(txt.getClass.getSimpleName) //MapPartitionsRDD
 
+    // 会主动去找指定目录下的文件，忽略子目录
+    val alltxt = sparkContext.wholeTextFiles("spark基础概念/data")
+
+    alltxt.foreach(line => println(line))
 
     sparkContext.stop() //程序结束 最好将sc关闭
 
