@@ -346,7 +346,7 @@ http://Spark-master:ui-port/history/application-id/environment/
         <td>Spark会多久检查一下要推测的任务。</td>
     </tr>
     <tr>
-        <td><font color="#a52a2a">spark.locality.wait</td>
+        <td bgcolor=#FF4500><font color="#a52a2a">spark.locality.wait</td>
 	    <td>3s</td>
         <td>本参数是以毫秒为单位启动本地数据task的等待时间，如果超出就启动下一本地优先级别的task。<br>
         该设置同样可以应用到各优先级别的本地性之间（本地进程 -> 本地节点 -> 本地机架 -> 任意节点 ），<br>
