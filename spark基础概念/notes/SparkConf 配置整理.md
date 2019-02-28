@@ -10,7 +10,7 @@ SparkConf解析和常用配置说明
 		* [运行时参数配置](#运行时参数配置)
 		* [调度相关属性](#调度相关属性)
         * [SparkStreaming配置](#SparkStreaming配置)
-        * [Spark On YARN配置](#Spark%20On%20YARN配置)
+        * [Spark On YARN配置](#Spark-On-YARN配置)
 		* [SparkUI配置](#SparkUI配置)
 ## SparkConf
 spark 配置可分为三层：spark properties、environment variables、还有logging配置

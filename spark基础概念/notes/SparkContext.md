@@ -18,8 +18,8 @@
 		* [ContextCleaner的创建与启动](#ContextCleaner的创建与启动)
 		* [额外的SparkListener与启动事件](#额外的SparkListener与启动事件)
 		* [Spark环境更新](#Spark环境更新)
-		* [投递应用程序启动事件](#投递应用程序启动事件)
-		* [创建DAGSchedulerSource、BlockManagerSource和ExecutorAllocationManagerSource](#创建DAGSchedulerSource、BlockManagerSource和ExecutorAllocationManagerSource)
+        * [投递应用程序启动事件](#投递应用程序启动事件)
+        * [创建DAGSchedulerSource BlockManagerSource和ExecutorAllocationManagerSource](#创建DAGSchedulerSource-BlockManagerSource和ExecutorAllocationManagerSource)
 		* [将SparkContext标记为激活](#将SparkContext标记为激活)
 ## SparkContext解析
 SparkContext为Spark的主要入口点，如果把Spark集群当作服务端那Spark
@@ -467,7 +467,7 @@ private def postApplicationStart() {
       startTime, sparkUser, applicationAttemptId, schedulerBackend.getDriverLogUrls))
 }
 ```
-### 创建DAGSchedulerSource、BlockManagerSource和ExecutorAllocationManagerSource
+### 创建DAGSchedulerSource BlockManagerSource和ExecutorAllocationManagerSource
 首先要调用taskScheduler的postStartHook方法，其目的是为了等待backend就绪。 
 ```scala
 // Post init
