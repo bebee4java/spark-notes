@@ -1,4 +1,12 @@
-# SparkContext解析
+深入理解SparkContext源码解析创建过程
+-------
+* [Contents](#Contents)
+	* [SparkContext解析](#SparkContext解析)
+    * [源码分析](#源码分析) 
+        * [初始设置](#初始设置)
+		* [创建执行环境SparkEnv](#创建执行环境SparkEnv)
+		* [创建SparkUI](#创建SparkUI)
+## SparkContext解析
 
 SparkContext为Spark的主要入口点，如果把Spark集群当作服务端那Spark
 Driver就是客户端，SparkContext则是客户端的核心：
@@ -28,9 +36,9 @@ Node交互的操作都需要SparkContext来完成。
 4. LiveListenerBus: SparkContext中的事件总线，可以接收各种使用方的事件，
    并且异步传递Spark事件监听与SparkListeners监听器的注册。
 
-#### 源码分析：
+## 源码分析
 SparkContext构建全过程： 
-###### 1. 初始设置
+### 初始设置
 首先保存了当前的CallSite信息，并且判断是否允许创建多个SparkContext实例，
 使用的是spark.driver.allowMultipleContexts属性，默认为false。 
 ```scala
@@ -72,7 +80,7 @@ if (!_conf.contains("spark.app.name")) {
   throw new SparkException("An application name must be set in your configuration")
 }
 ```
-###### 2. 创建执行环境SparkEnv
+### 创建执行环境SparkEnv
 SparkEnv是Spark的执行环境对象，其中包括与众多Executor指向相关的对象。在local模式下Driver会创建Executor，
 local-cluster部署模式或者Standalone部署模式下Worker另起的CoarseGrainedExecutorBackend进程中也会创建Executor，
 所以SparkEnv存在于Driver或者CoarseGrainedExecutorBackend进程中。
@@ -114,7 +122,7 @@ private[spark] def numDriverCores(master: String): Int = {
    }
 }
 ```
-###### 3. 创建SparkUI
+### 创建SparkUI
 SparkUI
 提供了用浏览器访问具有样式及布局并且提供丰富监控数据的页面。其采用的是时间监听机制。
 发送的事件会存入缓存，由定时调度器取出后分配给监听此事件的监听器对监控数据进行更新。
@@ -129,7 +137,7 @@ _ui =
     None
   }
 ```
-###### 4. Hadoop相关配置
+### Hadoop相关配置
 默认情况下，Spark使用HDFS作为分布式文件系统，所以需要获取Hadoop相关的配置信息:
 ```scala
 private var _hadoopConfiguration: Configuration = _
@@ -178,7 +186,7 @@ def appendS3AndSparkHadoopConfigurations(conf: SparkConf, hadoopConf: Configurat
     }
 }
 ```
-###### 5. Executor环境变量
+### Executor环境变量
 executorEnvs是由一个HashMap存储,包含的环境变量将会注册应用程序的过程中发送给Master，
 Master给Worker发送调度后，Worker最终使用executorEnvs提供的信息启动Executor。
 通过配置spark.executor.memory指定Executor占用的内存的大小，也可以配置系统变量
@@ -196,13 +204,13 @@ _executorMemory = _conf.getOption("spark.executor.memory")
   .map(Utils.memoryStringToMb)
   .getOrElse(1024)
 ```
-###### 6. 注册HeartbeatReceiver心跳接收器
+### 注册HeartbeatReceiver心跳接收器
 在Spark的实际生产环境中，Executor 是运行在不同的节点上的。在local模式下的
 Driver与Executor属于同一个进程，所以Dirver与Executor可以直接使用本地调用交互，
 当Executor运行出现问题时Driver可以很方便地知道，例如，通过捕获异常。
 但是在生产环境下Driver与Executor很可能不在同一个进程内，他们也许运行在不同的机器上，甚至在不同的机房里，
 因此Driver对Executor失去掌握。为了能够掌控Executor，在Driver中创建了这个心跳接收器。
-```
+```scala
 // We need to register "HeartbeatReceiver" before "createTaskScheduler" because Executor will
 // retrieve "HeartbeatReceiver" in the constructor. (SPARK-6640)
 //使用了SparkEnv的子组件NettyRpcEnv的setupEndpoint方法，此方法的作用是想RpcEnv的Dispatcher注册HeartbeatReceiver，
@@ -210,7 +218,7 @@ Driver与Executor属于同一个进程，所以Dirver与Executor可以直接使�
 _heartbeatReceiver = env.rpcEnv.setupEndpoint(
   HeartbeatReceiver.ENDPOINT_NAME, new HeartbeatReceiver(this))
 ```
-###### 7. 创建任务调度器TaskScheduler
+### 创建任务调度器TaskScheduler
 TaskScheduler也是SparkContext的重要组成部分，负责任务的提交，请求集群管理器对任务调度，
 并且负责发送的任务到集群，运行它们，任务失败的重试，以及慢任务的在其他节点上重试。
 其中给应用程序分配并运行Executor为一级调度，而给任务分配Executor并运行任务则为二级调度。
@@ -252,7 +260,7 @@ master match {
     (backend, scheduler)
     //.......
 ```
-###### 8. 创建和启动DAGScheduler
+### 创建和启动DAGScheduler
 DAGScheduler主要用于在任务正式交给TaskScheduler提交之前做一些准备工作，包括：
 创建Job，将DAG中的RDD划分到不同的Stage，提交Stage等等。
 
@@ -263,7 +271,7 @@ DAGScheduler主要用于在任务正式交给TaskScheduler提交之前做一些�
 //DAGScheduler的数据结构主要维护jobId和stageId的关系、Stage、ActiveJob，以及缓存的RDD的Partition的位置信息
 _dagScheduler = new DAGScheduler(this)
 ```
-###### 9 TaskScheduler的启动
+### TaskScheduler的启动
 TaskScheduler在启动的时候实际是调用了backend的start方法 
 ```scala
 // start TaskScheduler after taskScheduler sets DAGScheduler reference in DAGScheduler's
@@ -285,7 +293,7 @@ override def start() {
   }
 }
 ```
-###### 10. 启动测量系统MetricsSystem
+### 启动测量系统MetricsSystem
 MetricsSystem中三个概念：
 - Instance：指定了谁在使用测量系统；Spark按照Instance的不同，区分为Master、Worker、Application、Driver和Executor；
 - Source： 指定了从哪里收集测量数据； Source的有两种来源：Spark internal
@@ -306,7 +314,7 @@ _env.metricsSystem.start()
 // MetricsSystem启动完毕后，会遍历与Sinks有关的ServletContextHandler，并调用attachHandler将它们绑定到Spark UI上。
 _env.metricsSystem.getServletHandlers.foreach(handler => ui.foreach(_.attachHandler(handler)))
 ```
-###### 11. 创建事件日志监听器
+### 创建事件日志监听器
 EventLoggingListener 是将事件持久化到存储的监听器，是SparkContext
 中可选组件。当spark.eventLog.enabled属性为true时启动，默认为false。 创建
 EventLoggingListener 的代码： 
@@ -323,7 +331,7 @@ _eventLogDir =
   }
   //....   
 ```
-###### 12. 创建和启动ExecutorAllocationManager
+### 创建和启动ExecutorAllocationManager
 ExecutorAllocationManager用于对以分配的Executor进行管理。
 默认情况下不会创建ExecutorAllocationManager，可以修改属性spark.dynamicAllocation.enabled为true来创建。
 ExecutorAllocationManager可以动态的分配最小Executor的数量、动态分配最大Executor的数量、
@@ -347,7 +355,7 @@ _executorAllocationManager =
   }
 _executorAllocationManager.foreach(_.start())
 ```
-###### 13. ContextCleaner的创建与启动
+### ContextCleaner的创建与启动
 ContextCleaner用于清理超出应用范围的RDD、ShuffleDependency和Broadcast对象。
 ContextCleaner的组成：
 - referenceQueue: 缓存顶级的AnyRef引用
@@ -363,7 +371,7 @@ _cleaner =
   }
 _cleaner.foreach(_.start())
 ```
-###### 14. 额外的SparkListener与启动事件
+### 额外的SparkListener与启动事件
 SparkContext中提供了添加用于自定义 SparkListener 的地方: 
 ```scala
 /**
@@ -430,11 +438,11 @@ private def setupAndStartListenerBus(): Unit = {
 1. 从 spark.extraListeners 属性中获取用户自定义的 SparkListener的类名。用户可以通过逗号分割多个自定义 SparkListener。
 2. 通过发射生成每一个自定义 SparkListener 的实例，并添加到事件总线的监听器列表中。
 3. 启动事件总线，并将_listenerBusStarted设置为 true。
-###### 15. Spark 环境更新
+### Spark环境更新
 在SparkContext的初始化过程中，可能对其环境造成影响，所以需要更新环境：
 SparkContext初始化过程中，如果设置了spark.jars属性，spark.jars指定的jar包将由addJar方法加入httpFileServer的jarDir变量指定的路径下。
 每加入一个jar都会调用postEnvironmentUpdate方法更新环境。增加文件与增加jar相同，也会调用postEnvironmentUpdate方法。
-###### 16. 投递应用程序启动事件
+### 投递应用程序启动事件
 postApplicationStart方法只是向listenerBus发送了SparkListenerApplicationStart事件：
 ```scala
 /** Post the application start event */
@@ -445,7 +453,7 @@ private def postApplicationStart() {
       startTime, sparkUser, applicationAttemptId, schedulerBackend.getDriverLogUrls))
 }
 ```
-###### 17. 创建DAGSchedulerSource、BlockManagerSource和ExecutorAllocationManagerSource
+### 创建DAGSchedulerSource、BlockManagerSource和ExecutorAllocationManagerSource
 首先要调用taskScheduler的postStartHook方法，其目的是为了等待backend就绪。 
 ```scala
 // Post init
@@ -455,7 +463,7 @@ _env.metricsSystem.registerSource(new BlockManagerSource(_env.blockManager))
 _executorAllocationManager.foreach { e =>
   _env.metricsSystem.registerSource(e.executorAllocationManagerSource)
 ```
-###### 18. 将SparkContext标记为激活
+### 将SparkContext标记为激活
 SparkContext初始化的最后将当前SparkContext的状态从contextBeingConstructed（正在构建中）改为activeContext（已激活）
 ```scala
 // In order to prevent multiple SparkContexts from being active at the same time, mark this
