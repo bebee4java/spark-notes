@@ -1,5 +1,10 @@
-# spark RDD解释
-##### 设计RDD抽象模型主要是为了解决三个问题:
+深入理解spark RDD解释
+-------
+* [Contents](#Contents)
+	* [设计RDD抽象模型主要是为了解决三个问题](#设计RDD抽象模型主要是为了解决三个问题)
+	* [定义及特性](#定义及特性)
+	* [RDD创建](#RDD创建)
+## 设计RDD抽象模型主要是为了解决三个问题
 1. Fast(速度):Spark之前的Hadoop用的是MapReduce的编程模型，没有很好的利用分布式内存系统，
    中间结果都需要保存到external disk，运行效率很低。RDD模型是in-memory
    computing的，中间结果不需要被物化（materialized），它的persistence机制，
@@ -14,8 +19,8 @@
    transformations），比如map，filter和join，可以把相同的运算同时作用在许多数据单元上，
    这样的变换只会产生新的RDD而不改变旧的RDD。这种模型可以让Spark用Lineage很高效地容错。
 
-##### 定义及特性：
- RDD（Resilient Distributed Dataset）弹性分布式数据集：是Spark中的抽象数据结构类型，
+## 定义及特性
+RDD（Resilient Distributed Dataset）弹性分布式数据集：是Spark中的抽象数据结构类型，
 任何数据在Spark中都被表示为RDD。可以简单的看成看成是一个数组，里面的数据是分区存储的。
 不同分区的数据可以分布在不同的机器上，同时可以被并行处理。有如下几点概要：
 - RDD是一个抽象类
@@ -51,7 +56,7 @@ RDD示例图：
 
 [RDD官方解释](http://spark.apache.org/docs/latest/rdd-programming-guide.html#resilient-distributed-datasets-rdds)
 
-##### RDD创建:
+## RDD创建
 1. 并行化驱动程序中的现有集合 
 ```scala
     val data = Array(1, 2, 3, 4, 5) 
@@ -61,7 +66,7 @@ RDD示例图：
    InputFormat的任何数据源。通过文件的URI（本地路径file://，或hdfs://，或s3a://等URI）
    并将其作为行集合读取。
 ```scala
-    scala> val distFile = sc.textFile("data.txt")
+    val distFile = sc.textFile("data.txt")
     distFile: org.apache.spark.rdd.RDD[String] = data.txt MapPartitionsRDD[10] at textFile at <console>:26
 ```
 **Spark读取文件的一些注意事项**

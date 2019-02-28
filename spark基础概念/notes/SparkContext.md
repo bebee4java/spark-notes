@@ -6,8 +6,22 @@
         * [初始设置](#初始设置)
 		* [创建执行环境SparkEnv](#创建执行环境SparkEnv)
 		* [创建SparkUI](#创建SparkUI)
+		* [Hadoop相关配置](#Hadoop相关配置)
+		* [Executor环境变量](#Executor环境变量)
+		* [注册HeartbeatReceiver心跳接收器](#注册HeartbeatReceiver心跳接收器)
+		* [创建任务调度器TaskScheduler](#创建任务调度器TaskScheduler)
+		* [创建和启动DAGScheduler](#创建和启动DAGScheduler)
+		* [TaskScheduler的启动](#TaskScheduler的启动)
+		* [启动测量系统MetricsSystem](#启动测量系统MetricsSystem)
+		* [创建事件日志监听器](#创建事件日志监听器)
+		* [创建和启动ExecutorAllocationManager](#创建和启动ExecutorAllocationManager)
+		* [ContextCleaner的创建与启动](#ContextCleaner的创建与启动)
+		* [额外的SparkListener与启动事件](#额外的SparkListener与启动事件)
+		* [Spark环境更新](#Spark环境更新)
+		* [投递应用程序启动事件](#投递应用程序启动事件)
+		* [创建DAGSchedulerSource、BlockManagerSource和ExecutorAllocationManagerSource](#创建DAGSchedulerSource、BlockManagerSource和ExecutorAllocationManagerSource)
+		* [将SparkContext标记为激活](#将SparkContext标记为激活)
 ## SparkContext解析
-
 SparkContext为Spark的主要入口点，如果把Spark集群当作服务端那Spark
 Driver就是客户端，SparkContext则是客户端的核心：
 SparkContext用于连接Spark集群、创建RDD、累加器（accumlator）、广播变量（broadcast
