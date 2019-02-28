@@ -26,11 +26,11 @@ sparkConf类可以为spark程序设置配置，当然这些皆可在spark-defaul
 
 http://Spark-master:ui-port/history/application-id/environment/ 
 
-**需要关注的配置项：** 
+#### 需要关注的配置项:
 
 以spark2.2.0为例，详细可参看[官网配置](http://spark.apache.org/docs/2.2.0/configuration.html#application-properties)
 
-1. 应用程序属性：
+###### 1. 应用程序属性：
 <table class="table table-bordered table-striped table-condensed">
     <tr>
         <th bgcolor="#4c4c4c">属性名称</th>
@@ -101,7 +101,7 @@ http://Spark-master:ui-port/history/application-id/environment/
     </tr>
 </table>
 
-2. 运行环境配置：
+###### 2. 运行环境配置：
 <table class="table table-bordered table-striped table-condensed">
     <tr>
         <th bgcolor="#4c4c4c">属性名称</th>
@@ -166,7 +166,7 @@ http://Spark-master:ui-port/history/application-id/environment/
     </tr>
 </table>
 
-3. Shuffle行为相关配置：
+###### 3. Shuffle行为相关配置：
 <table class="table table-bordered table-striped table-condensed">
     <tr>
         <th bgcolor="#4c4c4c">属性名称</th>
@@ -202,7 +202,7 @@ http://Spark-master:ui-port/history/application-id/environment/
     </tr>
 </table>
 
-4. 压缩和序列化配置
+###### 4. 压缩和序列化配置
 <table class="table table-bordered table-striped table-condensed">
     <tr>
         <th bgcolor="#4c4c4c">属性名称</th>
@@ -282,7 +282,7 @@ http://Spark-master:ui-port/history/application-id/environment/
     </tr>
 </table>
 
-5. 运行时参数配置：
+###### 5. 运行时参数配置：
 <table class="table table-bordered table-striped table-condensed">
     <tr>
         <th bgcolor="#4c4c4c">属性名称</th>
@@ -312,7 +312,7 @@ http://Spark-master:ui-port/history/application-id/environment/
     </tr>
 </table>
 
-6. 调度相关属性
+###### 6. 调度相关属性
 <table class="table table-bordered table-striped table-condensed">
     <tr>
         <th bgcolor="#4c4c4c">属性名称</th>
@@ -375,7 +375,7 @@ http://Spark-master:ui-port/history/application-id/environment/
     </tr>
 </table>
 
-7. Spark Streaming 配置：
+###### 7. Spark Streaming 配置：
 <table class="table table-bordered table-striped table-condensed">
     <tr>
         <th bgcolor="#4c4c4c">属性名称</th>
@@ -401,7 +401,7 @@ http://Spark-master:ui-port/history/application-id/environment/
     </tr>
 </table>
 
-8. Spark On YARN配置：
+###### 8. Spark On YARN配置：
 <table class="table table-bordered table-striped table-condensed">
     <tr>
         <th bgcolor="#4c4c4c">属性名称</th>
@@ -453,7 +453,7 @@ http://Spark-master:ui-port/history/application-id/environment/
     </tr>
 </table>
 
-9. Spark UI配置：
+###### 9. Spark UI配置：
 <table class="table table-bordered table-striped table-condensed">
     <tr>
         <th bgcolor="#4c4c4c">属性名称</th>

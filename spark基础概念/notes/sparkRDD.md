@@ -51,7 +51,7 @@ RDD示例图：
 
 [RDD官方解释](http://spark.apache.org/docs/latest/rdd-programming-guide.html#resilient-distributed-datasets-rdds)
 
-RDD创建:
+##### RDD创建:
 1. 并行化驱动程序中的现有集合 
 ``` 
     val data = Array(1, 2, 3, 4, 5) 
