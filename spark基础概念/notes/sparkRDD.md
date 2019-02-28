@@ -53,14 +53,14 @@ RDD示例图：
 
 ##### RDD创建:
 1. 并行化驱动程序中的现有集合 
-``` 
+```scala
     val data = Array(1, 2, 3, 4, 5) 
     val distData = sc.parallelize(data)
 ```
 2. 引用外部存储系统中的数据集，例如共享文件系统，HDFS，HBase或提供Hadoop
    InputFormat的任何数据源。通过文件的URI（本地路径file://，或hdfs://，或s3a://等URI）
    并将其作为行集合读取。
-```
+```scala
     scala> val distFile = sc.textFile("data.txt")
     distFile: org.apache.spark.rdd.RDD[String] = data.txt MapPartitionsRDD[10] at textFile at <console>:26
 ```

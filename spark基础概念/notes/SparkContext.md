@@ -33,7 +33,7 @@ SparkContext构建全过程：
 ###### 1. 初始设置
 首先保存了当前的CallSite信息，并且判断是否允许创建多个SparkContext实例，
 使用的是spark.driver.allowMultipleContexts属性，默认为false。 
-```
+```scala
 // 包名：org.apache.spark
 // 类名：SparkContext
 class SparkContext(config: SparkConf) extends Logging {
@@ -54,12 +54,12 @@ class SparkContext(config: SparkConf) extends Logging {
   // NOTE: this must be placed at the beginning of the SparkContext constructor.
   // 用来确保SparkContext实例的唯一性，并将当前的SparkContext标记为正在构建中，以防止多个SparkContext实例同时成为active级别的。
   SparkContext.markPartiallyConstructed(this, allowMultipleContexts)
-  .......
+  //.......
 }
 ```
 接下来是对SparkConf进行复制，然后对各种配置信息进行校验，其中最主要的就是SparkConf必须指定
 spark.master（用于设置部署模式）和spark.app.name（应用程序名称）属性，否则会抛出异常。
-```
+```scala
 private var _conf: SparkConf = _
 
 _conf = config.clone()
@@ -78,7 +78,7 @@ local-cluster部署模式或者Standalone部署模式下Worker另起的CoarseGra
 所以SparkEnv存在于Driver或者CoarseGrainedExecutorBackend进程中。
 创建SparkEnv主要使用SparkEnv的createDriverEnv方法，有四个参数：conf、isLocal、listenerBus
 以及在本地模式下driver运行executor需要的numberCores。 
-```
+```scala
 private var _env: SparkEnv = _
 
 def isLocal: Boolean = Utils.isLocalMaster(_conf)
@@ -119,7 +119,7 @@ SparkUI
 提供了用浏览器访问具有样式及布局并且提供丰富监控数据的页面。其采用的是时间监听机制。
 发送的事件会存入缓存，由定时调度器取出后分配给监听此事件的监听器对监控数据进行更新。
 如果不需要SparkUI，则可以将spark.ui.enabled置为false。 
-```
+```scala
 _ui =
   if (conf.getBoolean("spark.ui.enabled", true)) {
     Some(SparkUI.createLiveUI(this, _conf, listenerBus, _jobProgressListener,
@@ -131,7 +131,7 @@ _ui =
 ```
 ###### 4. Hadoop相关配置
 默认情况下，Spark使用HDFS作为分布式文件系统，所以需要获取Hadoop相关的配置信息:
-```
+```scala
 private var _hadoopConfiguration: Configuration = _
 
 _hadoopConfiguration = SparkHadoopUtil.get.newConfiguration(_conf)
@@ -140,7 +140,7 @@ _hadoopConfiguration = SparkHadoopUtil.get.newConfiguration(_conf)
 AWS_SECRET_ACCESS_KEY加载到Hadoop的Configuration；
 将SparkConf中所有的以spark.hadoop.开头的属性都赋值到Hadoop的Configuration；
 将SparkConf的属性spark.buffer.size复制到Hadoop的Configuration的配置io.file.buffer.size
-```
+```scala
 // 包名：org.apache.spark.deploy
 // 类名：SparkHadoopUtil
 /**
@@ -183,7 +183,7 @@ executorEnvs是由一个HashMap存储,包含的环境变量将会注册应用程
 Master给Worker发送调度后，Worker最终使用executorEnvs提供的信息启动Executor。
 通过配置spark.executor.memory指定Executor占用的内存的大小，也可以配置系统变量
 SPARK_EXECUTOR_MEMORY或者SPARK_MEM设置其大小。 
-```
+```scala
 // Environment variables to pass to our executors.
 private[spark] val executorEnvs = HashMap[String, String]()
   
@@ -222,7 +222,7 @@ TaskScheduler也是SparkContext的重要组成部分，负责任务的提交，�
 ![TaskScheduler](images/SparkContext-taskScheduler.png)
 
 TaskScheduler负责任务调度资源分配，SchedulerBackend负责与Master、Worker通信收集Worker上分配给该应用使用的资源情况。
-```
+```scala
 private var _schedulerBackend: SchedulerBackend = _
 private var _taskScheduler: TaskScheduler = _
 
@@ -250,14 +250,14 @@ master match {
     val backend = new LocalSchedulerBackend(sc.getConf, scheduler, 1)
     scheduler.initialize(backend)
     (backend, scheduler)
-    .......
+    //.......
 ```
 ###### 8. 创建和启动DAGScheduler
 DAGScheduler主要用于在任务正式交给TaskScheduler提交之前做一些准备工作，包括：
 创建Job，将DAG中的RDD划分到不同的Stage，提交Stage等等。
 
 ![Spark任务执行流程](images/Spark任务执行流程.png) 
-```
+```scala
 @volatile private var _dagScheduler: DAGScheduler = _
 
 //DAGScheduler的数据结构主要维护jobId和stageId的关系、Stage、ActiveJob，以及缓存的RDD的Partition的位置信息
@@ -265,7 +265,7 @@ _dagScheduler = new DAGScheduler(this)
 ```
 ###### 9 TaskScheduler的启动
 TaskScheduler在启动的时候实际是调用了backend的start方法 
-```
+```scala
 // start TaskScheduler after taskScheduler sets DAGScheduler reference in DAGScheduler's
 // constructor
 _taskScheduler.start()
@@ -298,7 +298,7 @@ MetricsSystem的启动过程包括:
 + 注册Sinks
 + 将Sinks增加Jetty的ServletContextHandler
 
-```
+```scala
 // The metrics system for Driver need to be set spark.app.id to app ID.
 // So it should start after we get app ID from the task scheduler and set spark.app.id.
 _env.metricsSystem.start()
@@ -310,7 +310,7 @@ _env.metricsSystem.getServletHandlers.foreach(handler => ui.foreach(_.attachHand
 EventLoggingListener 是将事件持久化到存储的监听器，是SparkContext
 中可选组件。当spark.eventLog.enabled属性为true时启动，默认为false。 创建
 EventLoggingListener 的代码： 
-```
+```scala
 private[spark] def isEventLogEnabled: Boolean = _conf.getBoolean("spark.eventLog.enabled", false)
 
 _eventLogDir =
@@ -321,7 +321,7 @@ _eventLogDir =
   } else {
     None
   }
-  ....   
+  //....   
 ```
 ###### 12. 创建和启动ExecutorAllocationManager
 ExecutorAllocationManager用于对以分配的Executor进行管理。
@@ -330,7 +330,7 @@ ExecutorAllocationManager可以动态的分配最小Executor的数量、动态�
 每个Executor可以运行的Task数量等配置信息，并对配置信息进行校验。
 start方法将ExecutorAllocationListener加入listenerBus中，ExecutorAllocationListener
 通过监听listenerBus里的事件，动态的添加、删除Executor。并且通过不断添加Executor，遍历Executor，将超时的Executor杀死并移除。
-```
+```scala
 val dynamicAllocationEnabled = Utils.isDynamicAllocationEnabled(_conf)
 _executorAllocationManager =
   if (dynamicAllocationEnabled) {
@@ -354,7 +354,7 @@ ContextCleaner的组成：
 - referenceBuff：缓存AnyRef的虚引用
 - listeners：缓存清理工作的监听器数组
 - cleaningThread：用于具体清理工作的线程 
-```
+```scala
 _cleaner =
   if (_conf.getBoolean("spark.cleaner.referenceTracking", true)) {
     Some(new ContextCleaner(this))
@@ -365,7 +365,7 @@ _cleaner.foreach(_.start())
 ```
 ###### 14. 额外的SparkListener与启动事件
 SparkContext中提供了添加用于自定义 SparkListener 的地方: 
-```
+```scala
 /**
 * Registers listeners specified in spark.extraListeners, then starts the listener bus.
 * This should be called after all internal listeners have been registered with the listener bus
@@ -436,7 +436,7 @@ SparkContext初始化过程中，如果设置了spark.jars属性，spark.jars指
 每加入一个jar都会调用postEnvironmentUpdate方法更新环境。增加文件与增加jar相同，也会调用postEnvironmentUpdate方法。
 ###### 16. 投递应用程序启动事件
 postApplicationStart方法只是向listenerBus发送了SparkListenerApplicationStart事件：
-```
+```scala
 /** Post the application start event */
 private def postApplicationStart() {
     // Note: this code assumes that the task scheduler has been initialized and has contacted
@@ -447,7 +447,7 @@ private def postApplicationStart() {
 ```
 ###### 17. 创建DAGSchedulerSource、BlockManagerSource和ExecutorAllocationManagerSource
 首先要调用taskScheduler的postStartHook方法，其目的是为了等待backend就绪。 
-```
+```scala
 // Post init
 _taskScheduler.postStartHook()
 _env.metricsSystem.registerSource(_dagScheduler.metricsSource)
@@ -457,13 +457,15 @@ _executorAllocationManager.foreach { e =>
 ```
 ###### 18. 将SparkContext标记为激活
 SparkContext初始化的最后将当前SparkContext的状态从contextBeingConstructed（正在构建中）改为activeContext（已激活）
-```
+```scala
 // In order to prevent multiple SparkContexts from being active at the same time, mark this
 // context as having finished construction.
 // NOTE: this must be placed at the end of the SparkContext constructor.
 SparkContext.setActiveContext(this, allowMultipleContexts)
 ```
 至此，SparkContext的construction构造完成。
+
+
 
 
 

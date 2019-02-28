@@ -2,7 +2,7 @@
 spark 配置可分为三层：spark properties、environment variables、还有logging配置
 spark properties是由用户自己设置的，在任务中可以通过 SparkConf 类进行设置:
 
-```
+```scala
 val conf = new SparkConf()  
              .setMaster("local")  
              .setAppName("SparkTest")  
