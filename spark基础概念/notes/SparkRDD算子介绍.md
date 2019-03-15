@@ -7,9 +7,9 @@ Spark RDD支持两种类型的操作：
 Spark中的所有transformations算子都是惰性的，它们不会立即计算结果。他们只记录应用于数据集上的转换操作
 Actions算子则会触发Spark job，将最后结果返回到驱动程序。这种设计使Spark能够更有效地运行。
 
-![spark rdd operator](images/rdd_operator.png)
+![spark rdd operator](images/RDDOperator.png)
 
-## transformations算子
+## [transformations算子](http://spark.apache.org/docs/2.2.0/rdd-programming-guide.html#transformations)
 - map(func)
 
   将函数func作用到数据集的每一个元素上，并返回新的数据集。在T类型的RDD上运行是，func类型
@@ -88,6 +88,70 @@ Actions算子则会触发Spark job，将最后结果返回到驱动程序。这�
 
   对RDD元素进行采样取数，返回新的RDD。withReplacement：取出的元素是否放回
   fraction：抽取比例 seed：种子如果写死每次抽样相同
+  
+#### groupByKey和reduceByKey的区别
+groupByKey([num Tasks]) ：当键值对(K,V)数据集调用此方法，会返回一个键值对(K,
+Iterable)数据集，其中键值是原来键值组成的、可遍历的集合。我们也可以通过num
+Tasks参数指定任务执行的次数。
+
+reduceByKey(func[,num Tasks])：
+当键值相同的键值对(K,V)数据集调用此方法，他们的键对应的值会根据指定的函数(func)进行聚合，
+而键值(V,V)也进行合并，返回键值(V)，最终返回一个键值对(K,V)数据集。当然，也可以通过可选参数num
+Tasks，指定任务执行的次数。
+```scala
+//两种不同的方式来实现对单词出现次数进行统计：
+val words = Array("one", "two", "two", "three", "three", "three")
+val wordPairsRDD = sc.parallelize(words).map(word => (word, 1))
+val wordCountsWithReduce = wordPairsRDD.reduceByKey(_ + _).collect()
+val wordCountsWithGroup = wordPairsRDD.groupByKey().map(t => (t._1, t._2.sum)).collect()
+```
+![groupByKey](images/groupByKey.png)![reduceByKey](images/reduceByKey.png)
+
+**两者区别：**
+
+groupByKey()是对RDD中的所有数据做shuffle,根据不同的Key映射到不同的partition中再进行aggregate
+
+reduceByKey()也是先在单台机器中计算，再将结果进行shuffle，（shuffe前进行了combine）减小运算量，大数据情况下效率更优
+
+## [Actions算子](http://spark.apache.org/docs/2.2.0/rdd-programming-guide.html#actions)
+- reduce(func)
+
+  将RDD中元素两两传递给输入函数func 同时产生一个新的值，
+  新产生的值与RDD中下一个元素再被传递给输入函数直到最后只有一个值为止
+- collect()
+
+  将分布式数据集所有元素拉取到driver端，慎用
+- count()
+
+  返回数据集中的元素个数
+- first()
+
+  返回数据集的第一个元素（类似于take（1））
+- take(n)
+
+  返回数据集前n个元素的数组
+- takeSample(withReplacement, num, [seed])	
+
+  返回一个数组，该数组包含数据集num个元素的随机样本
+- takeOrdered(n, [ordering])
+  
+  返回RDD的前n个元素，使用它们按自然顺序或自定义比较器顺序
+- saveAsTextFile(path)	
+  
+  将数据集的元素作为文本文件（或一组文本文件受并行度影响）写入本地文件系统、HDFS或任何其他支持Hadoop的文件系统的给定目录中。
+  spark将对每个元素调用toString，将其转换为文件中的一行文本。
+- countByKey()
+
+  仅当对（k，v）对的数据集调用时，返回一个（k，int）对的hashmap
+- foreach(func)	
+
+  遍历数据集的每个元素进行func操作。该函数的类型必须为T => Unit
+
+SparkRDD API还公开了一些Actions操作的异步版本，比如foreach的foreachasync，
+它会立即向调用者返回FutureAction，而不是阻塞直到操作完成时。这可用于管理或等待动作的异步执行。
+
+
+
 
 
 

@@ -393,7 +393,120 @@ class SparkRDDOperatorTest {
         println("partition{} " + index + " data{} " + list)
         list.iterator
     }.count()
+  }
+
+  @Test
+  def reduce() = {
+    val rdd = sparkContext.parallelize(Array(1,2,3,4,5,6,7,8,9,10), 5)
+
+    // 将rdd所有元素求和
+    val sum = rdd.reduce(_+_)
+    println(sum)
+  }
+
+  @Test
+  def collect() = {
+    val rdd = sparkContext.parallelize(Array(1,2,3,4,5,6,7,8,9,10), 5)
+
+    val arr = rdd.collect()
+
+    for (a <- arr)
+      println(a)
+  }
+
+  @Test
+  def count() = {
+    val rdd = sparkContext.parallelize(Array(1,2,3,4,5,6,7,8,9,10), 5)
+
+    val cnt = rdd.count()
+    println(cnt)
+  }
+
+  @Test
+  def first() = {
+    val rdd = sparkContext.parallelize(Array(1,2,3,4,5,6,7,8,9,10), 5)
+
+    val first = rdd.first()
+    println(first)
+  }
+
+  @Test
+  def take() = {
+    val rdd = sparkContext.parallelize(Array(1,2,3,4,5,6,7,8,9,10), 5)
+
+    val arr = rdd.take(4)
+    println(arr.length)
+  }
+
+  @Test
+  def takeSample() = {
+    val rdd = sparkContext.parallelize(Array(1,2,3,4,5,6,7,8,9,10), 5)
+
+    //takeSample = take + sample
+    //第一个参数：取样是否放回
+    //第二个参数：取样的个数
+    //第三个参数：种子，如果写死每次取样结果相同
+    val arr = rdd.takeSample(true,4)
+    val arr1 = rdd.takeSample(false,4)
+    val arr2 = rdd.takeSample(true, 4 ,1)
+
+
+    println(arr.mkString(","))
+    println(arr1.mkString(","))
+    println(arr2.mkString(","))
+  }
+
+  @Test
+  def takeOrdered() = {
+    val rdd = sparkContext.parallelize(Array(1,2,3,4,5,6,7,8,9,10), 5)
+
+    val arr = rdd.takeOrdered(4)
+    println(arr.mkString(","))
+  }
+
+  @Test
+  def saveAsTextFile() = {
+    val rdd = sparkContext.parallelize(Array(1,2,3,4,5,6,7,8,9,10), 2)
+
+    rdd.saveAsTextFile("./data/03")
 
   }
 
+  @Test
+  def countByKey() = {
+    val rdd = sparkContext.parallelize(Array((1, "a"), (1, "b"), (2, "c"), (4, "d")), 1)
+
+    val map = rdd.countByKey()
+    println(map) // Map(4 -> 1, 1 -> 2, 2 -> 1)
+
+    val map1 = rdd.countByValue()
+    println(map1) //Map((1,b) -> 1, (2,c) -> 1, (1,a) -> 1, (4,d) -> 1)
+
+  }
+
+  @Test
+  def foreach() = {
+    val rdd = sparkContext.parallelize(Array(1,2,3,4,5,6,7,8,9,10), 1)
+
+    rdd.foreach{
+      x =>
+        Thread.sleep(1000)
+        println(x)
+    }
+
+
+    // 异步执行
+    val futureAction = rdd.foreachAsync{
+      x =>
+        Thread.sleep(60000)
+        println(x)
+    }
+
+
+    println(futureAction.isCompleted)
+
+    futureAction.get()
+
+
+  }
 }
