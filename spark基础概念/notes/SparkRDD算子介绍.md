@@ -1,5 +1,11 @@
 Spark RDD 核心算子介绍 
 ------
+* [Contents](#Contents)
+	* [transformations算子](#transformations算子)
+	* [Actions算子](#Actions算子)
+	* [RDD依赖](#RDD依赖)
+	* [RDD缓存](#RDD缓存)
+
 Spark RDD支持两种类型的操作： 
 - transformations 转换（从现有数据集创建新的数据集，本质是RDD到RDD）
 - actions 操作（在数据集上运行计算后将值返回到驱动程序，本质是RDD到result）
@@ -89,7 +95,8 @@ Actions算子则会触发Spark job，将最后结果返回到驱动程序。这�
   对RDD元素进行采样取数，返回新的RDD。withReplacement：取出的元素是否放回
   fraction：抽取比例 seed：种子如果写死每次抽样相同
   
-#### groupByKey和reduceByKey的区别
+**groupByKey和reduceByKey的区别:**
+
 groupByKey([num Tasks]) ：当键值对(K,V)数据集调用此方法，会返回一个键值对(K,
 Iterable)数据集，其中键值是原来键值组成的、可遍历的集合。我们也可以通过num
 Tasks参数指定任务执行的次数。
