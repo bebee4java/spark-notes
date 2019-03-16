@@ -95,7 +95,7 @@ map task运行期间会顺序写每个partition的数据，并通过一个索引
 这样一方面可以减少memory的使用和GC的开销，另一方面避免shuffle过程中频繁的序列化以及反序列化。在排序过程中，
 它提供cache-efficient sorter，使用一个8 bytes的指针，把排序转化成了一个指针数组的排序，极大的优化了排序性能。
 
-但是使用Unsafe Shuffle有几个限制，shuffle阶段不能有aggregate操作，分区数不能超过一定大小(${ 2 }^{ 24 }-1$，这是可编码的最大parition id)，
+但是使用Unsafe Shuffle有几个限制，shuffle阶段不能有aggregate操作，分区数不能超过一定大小(2^24-1，这是可编码的最大parition id)，
 所以像reduceByKey这类有aggregate操作的算子是不能使用Unsafe Shuffle，它会退化采用Sort Shuffle。
 
 ### Sort Shuffle v2
@@ -127,8 +127,6 @@ rdd.repartiton(largerNumPartition).map(...)
 3. 分批聚合
 使用treeReduce & treeAggregate替换reduce & aggregate。数据量较大时，reduce & aggregate一次性聚合，
 shuffle量太大，而treeReduce & treeAggregate是分批聚合，更为保险。
-
-<script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML"> </script>
 
 
 
