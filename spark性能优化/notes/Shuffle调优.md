@@ -1,5 +1,22 @@
 Spark Shuffle 相关调优
 ------
+* [Contents](#Contents)
+	* [先去重再合并](#先去重再合并)
+	* [broadcast代替join](#broadcast代替join)
+	* [数据倾斜的shuffle](#数据倾斜的shuffle)
+	* [reduceByKey代替groupByKey](#reduceByKey代替groupByKey)
+	* [treeReduce来代替reduce](#treeReduce来代替reduce)
+	* [提高shuffle操作的并行度](#提高shuffle操作的并行度)
+	* [参数调优](#参数调优)
+	  * [spark.shuffle.file.buffer](#spark.shuffle.file.buffer)
+	  * [spark.reducer.maxSizeInFlight](#spark.reducer.maxSizeInFlight)
+	  * [spark.shuffle.io.maxRetries](#spark.shuffle.io.maxRetries)
+	  * [spark.shuffle.io.retryWait](#spark.shuffle.io.retryWait)
+	  * [spark.shuffle.memoryFraction](#spark.shuffle.memoryFraction)
+	  * [spark.shuffle.manager](#spark.shuffle.manager)
+	  * [spark.shuffle.sort.bypassMergeThreshold](#spark.shuffle.sort.bypassMergeThreshold)
+	  * [spark.shuffle.consolidateFiles](#spark.shuffle.consolidateFiles)
+
 大多数Spark作业的性能主要就是消耗在了shuffle环节，因为该环节包含了大量的磁盘IO、序列化、网络数据传输等操作。
 因此，很有必要对shuffle过程进行调优。但是也必须提醒的是，影响一个Spark作业性能的因素，主要还是代码开发、资源参数以及数据倾斜，
 shuffle调优只能在整个Spark的性能调优中占到一小部分而已。
@@ -7,6 +24,7 @@ shuffle调优只能在整个Spark的性能调优中占到一小部分而已。
 在进行shuffle的时候，必须将各个节点上相同的key拉取到某个节点上的一个task来进行处理，比如按照key进行聚合或join等操作。
 此时如果某个key对应的数据量特别大的话，就会发生数据倾斜。数据倾斜只会发生在shuffle过程中。
 常用的并且可能会触发shuffle操作的算子有：distinct、groupByKey、reduceByKey、aggregateByKey、join、cogroup、repartition等。
+
 
 shuffle调优分为两种,一种是代码开发调优,一种是shuffle参数根据实际情况调优,关键还是代码开发。
 

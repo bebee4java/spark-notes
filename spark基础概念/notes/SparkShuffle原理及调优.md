@@ -37,6 +37,14 @@ Spark在DAG调度阶段会将一个Job划分为多个Stage，上游Stage做map�
 所以整个shuffle过程是极其昂贵的，spark在shuffle的实现上也做了很多优化改进，随着版本的迭代发布，
 spark shuffle的实现也逐步得到改进。
 
+**值得注意的是：**
+
+**虽然shuffle后的每个分区中的元素集是确定的，分区本身的顺序也是确定的，但分区的这些元素不是按顺序的。
+如果希望shuffle后按预期顺序排列数据，那么可以使用：**
+1. mapPartitions后对分区数据进行sort
+2. repartitionAndSortWithinPartitions在重新分区的同时高效地对分区数据进行排序
+3. sortBy使Rdd数据全局有序
+
 ## SparkShuffle实现演化史
 Spark在1.1以前的版本一直是采用Hash Shuffle的实现的方式，到1.1版本时参考Hadoop MapReduce的实现开始引入Sort Shuffle，
 在1.5版本时开始Tungsten钨丝计划，引入UnSafe Shuffle优化内存及CPU的使用，在1.6中将Tungsten统一到Sort Shuffle中，
