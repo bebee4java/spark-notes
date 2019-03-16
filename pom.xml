@@ -9,6 +9,7 @@
     <module>spark基础概念</module>
       <module>spark-streaming</module>
       <module>spark-sql</module>
+      <module>spark性能优化</module>
   </modules>
 
   <properties>
