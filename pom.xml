@@ -7,6 +7,8 @@
   <inceptionYear>2008</inceptionYear>
   <modules>
     <module>spark基础概念</module>
+      <module>spark-streaming</module>
+      <module>spark-sql</module>
   </modules>
 
   <properties>
@@ -35,6 +37,14 @@
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>
       <!--<scope>provided</scope>-->
+    </dependency>
+
+    <!--添加junta 测试依赖-->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <!--<scope>test</scope>-->
     </dependency>
 
     <!--添加hadoop 依赖-->

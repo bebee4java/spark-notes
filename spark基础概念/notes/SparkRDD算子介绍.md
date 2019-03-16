@@ -150,6 +150,58 @@ reduceByKey()也是先在单台机器中计算，再将结果进行shuffle，（
 SparkRDD API还公开了一些Actions操作的异步版本，比如foreach的foreachasync，
 它会立即向调用者返回FutureAction，而不是阻塞直到操作完成时。这可用于管理或等待动作的异步执行。
 
+[RDD Operators代码示例: SparkRDDOperatorTest](../src/main/scala/org/spark/notes/SparkRDDOperatorTest.scala)
+
+## RDD依赖
+在SparkRDD介绍一节曾说过RDD之间存在一系列的关系。RDDs正是通过transformations算子进行转换，
+转换得到的新RDD包含了从其他RDDs衍生所必需的信息，RDDs之间维护着这种血缘关系，也称之为依赖。
+如下图所示，依赖包括两种，一种是窄依赖，RDDs之间分区是一一对应的，另一种是宽依赖，
+下游RDD的某个分区与上游RDD(也称之为父RDD)的多个分区都有关，是多对多的关系。
+
+![RDD Dependency](images/RDDDependency.png)
+
+窄依赖(Narrow Dependencies)：一个父RDD的partition至多被子RDD的某一个partition使用一次（1对1）	
+宽依赖(Wide Dependencies)：一个父RDD的partition会被子RDD的partition使用多次，有shuffle（1对n）
+
+通过RDDs之间的这种依赖关系，一个任务流可以描述为DAG(有向无环图)，如下图所示，在实际执行过程中
+宽依赖对应于Shuffle(图中的reduceByKey和join)，[在SparkShuffle原理及调优一节有shuffle的详细介绍](SparkShuffle原理及调优.md)，
+窄依赖中的所有转换操作可以通过类似于管道的方式一气呵成执行(图中map和union可以一起执行)。
+划分宽窄依赖，是job切分stage的一个重要依据，从后向前推理，遇到宽依赖就断开切分一个stage，
+遇到窄依赖就把当前的RDD加入到Stage中。
+
+![RDD DAG](images/rdd-dag.png)
+
+对于窄依赖允许在单个集群节点上流水线式执行，这个节点可以计算所有父级分区。
+例如，可以逐个元素地依次执行filter操作和map操作，这个节点可以计算所有父级分区。
+相反，宽依赖需要所有的父RDD数据可用，并且数据已经通过类似MapReduce的操作shuffle完成。
+
+在窄依赖中，节点失败后的恢复也更加高效。因为只有丢失的父级分区需要重新计算，并且这些丢失的父级分区可以并行地运行在不同节点上重新计算。
+相反，在宽依赖的继承关系中，单个失败的节点可能导致一个RDD的所有先祖RDD中的一些分区丢失，导致整个计算的重新执行。
+
+## RDD缓存
+如果在应用程序中多次使用同一个RDD，可以将该RDD缓存起来，该RDD只有在第一次计算的时候会根据血缘关系得到分区的数据，
+在后续其他地方用到该RDD的时候，会直接从缓存处取而不用再根据血缘关系计算，这样就加速后期的重用。
+如下图所示，RDD-1经过一系列的转换后得到RDD-n并保存到hdfs，RDD-1在这一过程中会有个中间结果，如果将其缓存到内存，
+那么在随后的RDD-1转换到RDD-m这一过程中，就不会重复计算其之前的RDD-0了。
+
+![RDD Cache](images/rdd-cache.png)
+
+虽然RDD的血缘关系天然地可以实现容错，当RDD的某个分区数据失败或丢失，可以通过血缘关系重建。但是对于长时间迭代型应用来说，
+随着迭代的进行，RDDs之间的血缘关系会越来越长，一旦在后续迭代过程中出错，则需要通过非常长的血缘关系去重建，势必影响性能。
+为此，RDD支持checkpoint将数据保存到持久化的存储中，这样就可以切断之前的血缘关系，因为checkpoint后的RDD不需要知道它的父RDDs了，
+可以从checkpoint处拿到数据。
+
+通常，调用rdd.cache()进行缓存rdd数据，或者rdd.persist()通过指定StorageLevel类设置存储级别，默认是StorageLevel.MEMORY_ONLY。
+cache底层调用的就是persist方法。cache和transformation一样都是lazy操作没有遇到action是不会提交作业到spark上运行的。然而，unpersist
+是立即执行的。如果一个RDD在后续的计算中可能会被使用到，那么建议cache。
+
+存储级别选择，综合考虑mem和cpu情况进行选择，优先级为：MEMORY_ONLY>MEMORY_ONLY_SER>MEMORY_AND_DISK>DISK_ONLY尽可能选择内存的存储，不建议使用磁盘存储，
+因为有些rdd可能重新计算都比从磁盘读取要快。
+
+
+
+
+
 
 
 

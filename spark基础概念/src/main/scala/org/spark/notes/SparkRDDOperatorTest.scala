@@ -506,7 +506,26 @@ class SparkRDDOperatorTest {
     println(futureAction.isCompleted)
 
     futureAction.get()
+  }
 
+  @Test
+  def checkPoint() = {
+    sparkContext.setCheckpointDir("./data/checkpoint")
+    val rdd = sparkContext.textFile("./data/user_mess.csv") // 103M大小
 
+//    rdd.checkpoint()
+
+    rdd.cache()
+    var cnt = 0L
+    val start = System.currentTimeMillis()
+    for (i <- 0 to 10){
+      cnt = rdd.count()
+    }
+    val end = System.currentTimeMillis()
+
+    //1.不做缓存 cnt{}3506463,times{}8084
+    //2.checkpoint cnt{}3506463,times{}11363
+    //3.cache cnt{}3506463,times{}3686
+    println("cnt{}" + cnt +",times{}"+(end-start))
   }
 }
