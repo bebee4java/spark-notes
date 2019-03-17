@@ -39,6 +39,10 @@ spark shuffle的实现也逐步得到改进。
 
 **值得注意的是：**
 
+**一些重新分区、合并等操作都会产生shuffle，以ByKey结尾的算子都会有shuffle，常用并且会触发shuffle的算子有：
+repartition、coalesce、groupByKey、reduceByKey、aggregateByKey、countByKey、groupBy、join、cogroup、intersection、distinct等**
+
+
 **虽然shuffle后的每个分区中的元素集是确定的，分区本身的顺序也是确定的，但分区的这些元素不是按顺序的。
 如果希望shuffle后按预期顺序排列数据，那么可以使用：**
 1. mapPartitions后对分区数据进行sort
