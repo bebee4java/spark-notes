@@ -225,6 +225,23 @@ class DataFrameOperate {
     df2.createOrReplaceTempView("df2")
     // 建议直接使用sql
     spark.sql("select * from df1 a inner join df2 b on a.id > b.id").show()
+
+
+    df1.crossJoin(df2).show() //笛卡尔积 n*n
+    /**
+      * 实现会把replace("_", "")
+      * case "inner" => Inner
+      * case "outer" | "full" | "fullouter" => FullOuter
+      * case "leftouter" | "left" => LeftOuter
+      * case "rightouter" | "right" => RightOuter
+      * case "leftsemi" => LeftSemi
+      * case "leftanti" => LeftAnti
+      * case "cross" => Cross
+      */
+    df1.join(df2,Seq("id"),"full").show() //full 和 full_outer 一致
+
+    df1.join(df2, Seq("id"), "leftsemi").show() // 取df1中在df2出现的记录
+    df1.join(df2, Seq("id"), "leftanti").show() // 取df1中不在在df2出现的记录
   }
 
   @Test
