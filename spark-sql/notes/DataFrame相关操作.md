@@ -135,6 +135,7 @@ df1.union(df2).show()
 ## 对DataFrame数据转JSON
 可以调用df.toJSON将Dataset[Row]转成Dataset[String] json字符串。
 
+[**DataFrame操作示例代码: DataFrameOperate.scala**](../src/main/scala/org/spark/notes/DataFrameOperate.scala)
   
 
 
