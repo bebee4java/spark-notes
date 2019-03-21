@@ -159,10 +159,7 @@ parquet.io.ParquetDecodingException: Can not read value at 0 in block -1 in file
     **刷新元数据**
     
     注意，Spark SQL会缓存Parquet元数据以提高性能。如果Hive metastore Parquet table转换被启用的话，那么转换过来的schema也会被缓存。
-    这时候，如果这些表由Hive或其他外部工具更新了，你必须手动刷新元数据。
-    ```
-    
-    ```
+    这时候，如果这些表由Hive或其他外部工具更新了，你必须手动刷新元数据。通过sparkSession.catalog.refreshTable()
 #### **Parquet配置**
 Parquet配置可以通过sparkSession.sqlContext.setConf()或者sparkSession.conf.set()或者SQL语句中SETkey=value来指定。
 
@@ -214,15 +211,55 @@ Parquet配置可以通过sparkSession.sqlContext.setConf()或者sparkSession.con
    </tr>
 </table>
 
-[Parquet处理示例代码: ParquetDataSource.scala](../src/main/scala/org/spark/notes/ParquetDataSource.scala)
-
+[Parquet处理示例代码: DataSourceParquet.scala](../src/main/scala/org/spark/notes/DataSourceParquet.scala)
 ## JSON数据集
 Spark SQL在加载JSON数据的时候，可以自动推导其schema并返回DataFrame。
 用sparkSession.read.json读取一个包含String的Dataset或者JSON文件，即可实现这一转换。
 注意，通常所说的json文件只是包含一些json数据的文件，而不是我们所需要的JSON格式文件。
 JSON数据文件必须每一行是一个独立、完整的的JSON对象。对于多行JSON文件，需要设置multiLine选项为true。
 
-[Json处理示例代码: JsonDataSource.scala](../src/main/scala/org/spark/notes/JsonDataSource.scala)
+[Json处理示例代码: DataSourceJson.scala](../src/main/scala/org/spark/notes/DataSourceJson.scala)
+
+## Hive Tables
+Spark SQL支持从Apache Hive读写数据。然而，Hive依赖项太多，所以没有把Hive包含在默认的Spark发布包里。
+如果在类路径上可以找到hive依赖项，spark将自动加载它们。注意，hive的jar包也必须出现在所有的worker节点上，
+访问Hive数据时候会用到（如：使用hive的序列化和反序列化SerDes时）。
+
+配置hive需要把hive-site.xml，core-site.xml（安全配置），hdfs-site.xml（HDFS配置）配置文件放到spark的conf目录下。
+
+如果使用Hive，则必须构建一个支持hive的SparkSession通过enableHiveSupport()，包括能连接Hive metastore，
+支持Hive serdes，以及对Hive 自定义函数的支持。如果用户没有现有的Hive部署，也可以支持Hive。
+如果没有hive-site.xml的配置，那么HiveContext将会自动在当前目录下创建一个metastore_db目录，
+由spark.sql.warehouse.dir配置，默认为启动spark应用程序的当前目录中的spark-warehouse目录。
+注意，hive-site.xml中的hive.metastore.warehouse.dir属性从spark 2.0.0被弃用。
+请注意，你必须对metastore_db目录向启动Spark应用程序的用户授予写权限。
+#### 为Hive tables指定存储格式
+当创建一个Hive表时，需要定义这个表应该如何从文件系统读/写数据，即"input format"和"output format"。
+还需要定义此表应如何将数据反序列化为行，或将行序列化为数据，即“serde”。默认情况下，将以纯文本形式读取表文件。
+下表介绍存储格式"input format"、"output format"、"serde"的含义：
+
+|属性名|含义|
+|---|---|
+|fileFormat|文件格式是一种存储格式规范包，包括“serde”、“input format”和“output format”。目前支持6种文件格式：'sequencefile', 'rcfile', 'orc', 'parquet', 'textfile' and 'avro'.|
+|inputFormat, outputFormat|这两个选项必须成对出现，如果已经指定了“fileformat”选项，则不能指定它们。值是字符串，类全路径如：org.apache.hadoop.hive.ql.io.orc.OrcInputFormat|
+|serde|此选项指定了一个serd class的名称。当文件格式选项被指定时请不要具体说明这一选项。|
+|fieldDelim, escapeDelim, collectionDelim, mapkeyDelim, lineDelim|这些选项只能与“textfile”文件格式一起使用。它们定义了如何将分隔文件读取到行中。|
+
+[Hive Table处理示例代码: DataSourceHiveTable.scala](../src/main/scala/org/spark/notes/DataSourceHiveTable.scala)
+## 用JDBC连接其他数据库
+
+[Hive Table处理示例代码: DataSourceHiveTable.scala](../src/main/scala/org/spark/notes/DataSourceHiveTable.scala)
+## CSV文件
+csv默认已逗号做分隔符，即：使用逗号分隔一条数据中各字段的值。csv文件可以被excel解析，但是其本质只是一个文本文件。
+还可以使用别的字符做分割符如：\t |等。SparkSQL读取csv文件时也需要注意分割符，可以通过delimiter选项指定，如果csv
+带字段头需要设置header=true。加载csv文件返回的DataFrame，其schema所有字段类型默认都是String。
+
+[CSV处理示例代码: DataSourceCSV.scala](../src/main/scala/org/spark/notes/DataSourceCSV.scala)
+## 其他格式文件
+SparkSQL除了可以读parquet、json、csv格式的文件，还支持text、orc格式。可以使用
+spark.read.format()进行统一操作。和上面格式的文件处理方式类似，不过多介绍。
+SparkSQL很好的一点是可以通过read、write统一的接口方便的进行数据操作，实现ETL。
+
 
 
        

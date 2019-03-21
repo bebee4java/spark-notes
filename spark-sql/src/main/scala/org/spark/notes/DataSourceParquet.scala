@@ -7,10 +7,10 @@ import org.apache.spark.sql.{SaveMode, SparkSession}
   * @author sgr
   * @version 1.0, 2019-03-21 16:59
   **/
-object ParquetDataSource {
+object DataSourceParquet {
 
   def main(args: Array[String]): Unit = {
-    val spark = SparkSession.builder().appName("ParquetDataSource").master("local[2]").getOrCreate()
+    val spark = SparkSession.builder().appName("DataSourceParquet").master("local[2]").getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
 
     val df = spark.read.format("csv").option("header", "true").load("./spark-sql/data/users.csv")

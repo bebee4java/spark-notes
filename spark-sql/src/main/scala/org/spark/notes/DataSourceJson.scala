@@ -8,9 +8,9 @@ import org.apache.spark.sql.types._
   * @author sgr
   * @version 1.0, 2019-03-21 20:34
   **/
-object JsonDataSource {
+object DataSourceJson {
   def main(args: Array[String]): Unit = {
-    val spark = SparkSession.builder().appName("JsonDataSource").master("local[2]").getOrCreate()
+    val spark = SparkSession.builder().appName("DataSourceJson").master("local[2]").getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
 
     val jsons = Array(
