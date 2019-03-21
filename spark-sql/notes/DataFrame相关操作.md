@@ -9,7 +9,7 @@ Spark SQL DataFrame相关操作
 	* [对DataFrame删除增加列](#对DataFrame删除增加列)
 	* [对DataFrame列进行正则处理](#对DataFrame列进行正则处理)
 	* [对DataFrame列进行聚合操作](#对DataFrame列进行聚合操作)
-	* [对DataFrame的缺失值(Null)值处理](#对DataFrame的缺失值(Null)值处理)
+	* [对DataFrame的缺失值(Null)值处理](#对DataFrame的缺失值Null值处理)
 	* [对DataFrame进行join操作](#对DataFrame进行join操作)
 	* [对DataFrame进行union操作](#对DataFrame进行union操作)
 	* [DataFrame窗口函数使用](#DataFrame窗口函数使用)
@@ -98,7 +98,7 @@ Spark SQL中的DataFrame类似于一张关系型表。在关系型数据库中�
     // min max count 等函数必须放在agg里
     df.groupBy("age").agg(min("id")).show()
 ```
-## 对DataFrame的缺失值(Null)值处理
+## 对DataFrame的缺失值Null值处理
 可以使用na.fill(map)，实现对NULL值的填充。
 ```scala
     // null 统一替换成 ""
@@ -120,8 +120,8 @@ Spark SQL中的DataFrame类似于一张关系型表。在关系型数据库中�
     df1.join(df2, df1("id") === df2("id") ).show()
 ```
 ## 对DataFrame进行union操作
-注意Spark SQL中union和hql的union不一样，只是合并不会去重相当于SQL中的UNION ALL操作。
-其中unionAll方法底层也是调用union，已经过时。
+可以对结构相同的两个DataFrame进行union操作。注意Spark SQL中union和hql的union不一样，
+只是合并不会去重相当于SQL中的UNION ALL操作。其中unionAll方法底层也是调用union，已经过时。
 ```scala
 df1.union(df2).show()
 ``` 

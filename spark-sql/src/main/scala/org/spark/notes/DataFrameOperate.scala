@@ -252,6 +252,8 @@ class DataFrameOperate {
     df1.show()
     df2.show()
     df1.union(df2).distinct().show()
+//  结构必须一致
+//    df.select("id","name").union(df.select("id")).show()
   }
 
   @After
