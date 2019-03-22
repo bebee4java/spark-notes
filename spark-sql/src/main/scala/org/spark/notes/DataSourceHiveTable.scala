@@ -54,6 +54,8 @@ object DataSourceHiveTable {
     df.write.partitionBy("age").mode(SaveMode.Overwrite).saveAsTable("test.spark_sql_pt_test")
 
     spark.sql("select id,name from test.spark_sql_test").show()
+
+    spark.close()
   }
 
 }

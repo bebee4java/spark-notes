@@ -31,6 +31,6 @@ object RDD2DataFrame2 {
 
     spark.sql("select age,count(1) cnt from people group by age").show()
 
-
+    spark.close()
   }
 }

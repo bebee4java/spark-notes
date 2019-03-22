@@ -57,6 +57,8 @@ object DataSourceCSV {
       .mode(SaveMode.Overwrite)
       .csv("./spark-sql/data/output/csv/")
 
+    spark.close()
+
   }
 
 }

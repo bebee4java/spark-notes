@@ -28,6 +28,8 @@ object RDD2DataFrame1 {
     val rddRow:RDD[Row] = df.rdd
     // DF 转 DS
     val ds:Dataset[Person] = df.as[Person]
+
+    spark.close()
   }
   case class Person(id:Int, name:String, age:Int)
 }

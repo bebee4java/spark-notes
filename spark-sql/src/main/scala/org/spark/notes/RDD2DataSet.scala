@@ -25,6 +25,8 @@ object RDD2DataSet {
     // DS 转 DF
     val df = ds.toDF
     df.printSchema()
+
+    spark.close()
   }
   case class Person(id:Int, name:String, age:Int)
 

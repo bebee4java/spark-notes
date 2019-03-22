@@ -44,6 +44,8 @@ object DataSourceParquet {
 
     spark.sql("desc formatted users_parquet").show(false)
     spark.sql("select age,count(1) cnt from users_parquet group by age").show()
+
+    spark.close()
   }
 
 }

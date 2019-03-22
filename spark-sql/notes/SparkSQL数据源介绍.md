@@ -1,5 +1,17 @@
 DataFrame各数据源的IO操作
 ------
+* [Contents](#Contents)
+	* [通用的加载和保存函数](#通用的加载和保存函数)
+    * [Parquet文件](#Parquet文件) 
+        * [Parquet特性](#Parquet特性)
+		* [Parquet配置](#Parquet配置)
+	* [JSON数据集](#JSON数据集)
+	* [Hive Tables](#Hive-Tables)
+		* [为Hive tables指定存储格式](#为Hive-tables指定存储格式)
+	* [用JDBC连接其他数据库](#用JDBC连接其他数据库)
+	* [CSV文件](#CSV文件)
+	* [其他格式文件](#其他格式文件)
+
 Spark SQL支持基于DataFrame操作一系列不同的数据源。
 
 ![SparkSQL DataSource](images/data-source.png)
@@ -247,8 +259,24 @@ Spark SQL支持从Apache Hive读写数据。然而，Hive依赖项太多，所�
 
 [Hive Table处理示例代码: DataSourceHiveTable.scala](../src/main/scala/org/spark/notes/DataSourceHiveTable.scala)
 ## 用JDBC连接其他数据库
+SparkSQL也可以用JDBC访问其他数据库。这一功能应该优先于使用JdbcRDD。因为它返回一个DataFrame，而DataFrame在SparkSQL中操作更简单。
+首先，您需要在spark classpath中包含对应数据库的JDBC driver。例如，要从spark shell连接到postgres，运行以下命令：
+```
+bin/spark-shell --driver-class-path postgresql-9.4.1207.jar --jars postgresql-9.4.1207.jar
+```
+远程数据库的表可以通过Data Sources API，用DataFrame或者SparkSQL 临时表来装载。可以在数据源选项中指定JDBC连接属性，
+用户和密码通常作为登录到数据源的连接属性提供。除了连接属性外，Spark还支持以下不区分大小写的选项：
 
-[Hive Table处理示例代码: DataSourceHiveTable.scala](../src/main/scala/org/spark/notes/DataSourceHiveTable.scala)
+|属性名|含义|
+|---|---|
+|url|要连接到的JDBC URL。可以在URL中指定源特定的连接属性。如：jdbc:postgresql://localhost/test?user=fred&password=secret|
+|dbtable|读取JDBC的表。也可以使用SQL查询的FROM子句中有效的任何内容。例如，可以使用括号中的子查询来代替完整的表。|
+|driver|用于连接到URL的JDBC驱动程序的类名。|
+|partitionColumn, lowerBound, upperBound, numPartitions|这几个选项，如果指定其中一个，则必须全部指定。他们描述了多个worker如何并行的读入数据，并将表分区。partitionColumn必须是所查询的表中的一个数值字段。注意，lowerBound和upperBound只是用于决定分区跨度的，而不是过滤表中的行。因此，表中所有的行都会被分区然后返回。numPartitions是表读写中可用于并行的最大分区数。这也决定了并发JDBC连接的最大数量|
+|fetchsize|它决定每一次往返提取多少行。这有助于JDBC驱动程序的性能，而JDBC驱动程序默认为较低的提取大小（例如，Oracle有10行）|
+|batchsize|它决定每次往返插入多少行。这有助于JDBC驱动程序的性能。此选项仅适用于写入。默认值为1000。|
+
+[JDBC Table处理示例代码: DataSourceJDBCTable.scala](../src/main/scala/org/spark/notes/DataSourceJDBCTable.scala)
 ## CSV文件
 csv默认已逗号做分隔符，即：使用逗号分隔一条数据中各字段的值。csv文件可以被excel解析，但是其本质只是一个文本文件。
 还可以使用别的字符做分割符如：\t |等。SparkSQL读取csv文件时也需要注意分割符，可以通过delimiter选项指定，如果csv
