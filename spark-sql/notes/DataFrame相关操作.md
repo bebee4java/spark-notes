@@ -75,6 +75,8 @@ Spark SQL中的DataFrame类似于一张关系型表。在关系型数据库中�
     df.withColumn("newAge", df("age") + 10).show()
     // 增加常量列
     df.selectExpr("*", "1 one").show()
+    // 通过lit方法增加常量列
+    df.select(col("id"), lit(1).as("one")).show()
 ```
 
 ## 对DataFrame列进行正则处理

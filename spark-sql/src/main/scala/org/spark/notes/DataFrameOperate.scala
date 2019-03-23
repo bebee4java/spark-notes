@@ -101,6 +101,9 @@ class DataFrameOperate {
     // 增加常量列
     df.selectExpr("*", "1 one").show()
 
+    // 通过lit函数增加列
+    df.select(df("id"), lit(1).as("one")).show()
+
   }
 
   @Test
