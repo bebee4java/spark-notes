@@ -1,0 +1,26 @@
+安装单机版zookeeper:
+1,解压
+tar -zxvf zookeeper-3.4.13.tar.gz -C ~/software/bigdata/
+2,添加环境变量
+vim ~/.bash_profile
+
+ZOOKEEPER_HOME=/Users/sgr/software/bigdata/zookeeper-3.4.13
+PATH=$PATH:$ZOOKEEPER_HOME/bin
+export ZOOKEEPER_HOME
+
+source ~/.bash_profile
+3,配置
+cd $ZOOKEEPER_HOME/conf
+cp zoo_sample.cfg zoo.cfg
+vim zoo.cfg
+
+dataDir=/Users/sgr/software/bigdata/zookeeper-3.4.13/data
+dataLogDir=/Users/sgr/software/bigdata/zookeeper-3.4.13/logs
+创建目录
+mkdir /Users/sgr/software/bigdata/zookeeper-3.4.13/data
+mkdir /Users/sgr/software/bigdata/zookeeper-3.4.13/logs
+4,启动
+zkServer.sh start
+5,验证
+zkCli.sh -server 127.0.0.1:2181
+

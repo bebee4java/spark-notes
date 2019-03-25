@@ -1,0 +1,28 @@
+kafka:
+    broker.list: localhost:9092
+    topic: dianshang
+    groupid: dianshang-group
+    zookeeper.url: localhost:2181/kafka
+
+datasource:
+    driver: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/spark_war
+    username: spark_war
+    password: 123456
+    maxactive: 30
+    maxidle: 60
+    maxwait: -1
+    validationQuery: select 1 from dual
+
+stream:
+    kafka.topics: dianshang
+    kafka.broker.list: localhost:9092
+    kafka.groupid: dianshang-group
+    process.delay: 3
+
+redis:
+    minidle: 50
+    maxtotal: 200
+    #password: 123
+    address: localhost:6379
+

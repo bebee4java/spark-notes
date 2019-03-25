@@ -1,0 +1,30 @@
+安装单机版kafka：
+1,解压
+tar -zxvf kafka_2.11-1.0.0.tgz -C ~/software/bigdata/
+2,添加环境变量
+vim ~/.bash_profile
+
+KAFKA_HOME=/Users/sgr/software/bigdata/kafka_2.11-1.0.0
+PATH=$PATH:$KAFKA_HOME/bin
+export KAFKA_HOME
+
+source ~/.bash_profile
+3,配置
+cd $/KAFKA_HOME/config
+vim server.properties
+
+log.dirs=/Users/sgr/temp/kafka-logs
+zookeeper.connect=localhost:2181/kafka
+
+4,启动
+先启动zookeeper
+kafka-server-start.sh -daemon $KAFKA_HOME/config/server.properties
+5,测试
+创建topic
+kafka-topics.sh --create --topic mykafka --partitions 1 --replication-factor 1 --zookeeper localhost:2181/kafka
+查看topic
+kafka-topics.sh --list --zookeeper localhost:2181/kafka
+创建producer
+kafka-console-producer.sh --topic mykafka --broker-list localhost:9092
+创建consumer
+kafka-console-consumer.sh --topic mykafka --zookeeper localhost:2181/kafka

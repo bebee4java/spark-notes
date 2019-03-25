@@ -1,0 +1,50 @@
+Spark Streaming集成Kafka时的offset状态如何管理?
+
+1.checkpoints
+spark streaming里面管理偏移量的策略，默认的spark streaming它自带管理的offset的方式是通过checkpoint来记录每个批次的
+状态持久化到HDFS中，如果机器发生故障，或者程序故障停止，下次启动时候，仍然可以从checkpoint的目录中读取故障时候rdd的状态，
+便能接着上次处理的数据继续处理，但checkpoint方式最大的弊端是如果代码升级，新版本的jar不能复用旧版本的序列化状态，
+导致两个版本不能平滑过渡，结果就是要么丢数据，要么数据重复，所以官网搞的这个东西，几乎没有人敢在生产环境运行非常重要的流式项目。
+
+2.自己管理
+自己写代码管理spark streaming集成kafka时的offset，其实就是把每批次offset存储到一个外部的存储系统里面包括（Hbase，HDFS,Zookeeper，
+Kafka，DB等等），不管用什么存储系统， 都需要考虑到三种时刻的offset的状态，否则offset的状态不完整，就可能导致一些bug出现。
+
+场景一：
+当一个新的spark streaming+kafka的流式项目第一次启动的时候，这个时候发现外部的存储系统并没有记录任何有关这个topic所有分区的偏移量，所以就从
+KafkaUtils.createDirectStream直接创建InputStream流，默认是从最新的偏移量消费，如果是第一次其实最新和最旧的偏移量时相等的都是0，
+然后在以后的每个批次中都会把最新的offset给存储到外部存储系统中，不断的做更新。
+
+场景二：
+当流式项目停止后再次启动，会首先从外部存储系统读取是否记录的有偏移量，如果有的话，就读取这个偏移量，然后把偏移量集合传入到
+KafkaUtils.createDirectStream中进行构建InputSteam，这样的话就可以接着上次停止后的偏移量继续处理，然后每个批次中仍然的不断更新
+外部存储系统的偏移量，这样以来就能够无缝衔接了，无论是故障停止还是升级应用，都是透明的处理。
+
+场景三：
+对正在运行的一个spark streaming+kafka的流式项目，我们在程序运行期间增加了kafka的分区个数，请注意：这个时候新增的分区是不能被
+正在运行的流式项目感应到的，如果想要程序能够识别新增的分区，那么spark streaming应用程序必须得重启，同时如果你还使用的是自己写代码管理的
+offset就千万要注意，对已经存储的分区偏移量，也要把新增的分区插入进去，否则你运行的程序仍然读取的是原来的分区偏移量，这样就会丢失一部分数据。
+
+实现：
+情形1：Streaming任务第一次启动，从zookeeper中获取给定topic的分区数，然后将每个分区的offset都设置为0，并返回。
+情形2：Streaming任务长时间运行后停止并且topic分区没有任何变化，在这个情形下，直接使用存储中所保存的offset即可。
+情形3：一个运行了很长时间的streaming任务停止并且给定的topic增加了新的分区，处理方式是从zookeeper中获取给定topic的分区数，对于所有老的分区，offset依然使用存储中所保存，对于新的分区则将offset设置为0。
+
+
+# 使用Hbase存储offset
+create 'stream_kafka_offsets', {NAME=>'offsets', TTL=>2592000}
+rowkey设计：以topic名称、消费者group id和Spark Streaming 的batchTime.milliSeconds作为rowkey以做唯一标识。
+尽管batchTime.milliSeconds不是必须的，但是它能够更好地展示历史的每批次的offsets。表格将存储30天的累积数据，如果超出30天则会被移除
+<TOPIC_NAME>:<GROUP_ID>:<EPOCH_BATCHTIME_MS>
+
+
+# 使用DB存储offset
+CREATE TABLE `stream_kafka_offset` (
+  `id` bigint(128) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+  `topic` varchar(128) NOT NULL,
+  `_partition` int(32) NOT NULL,
+  `custom_group` varchar(128) NOT NULL,
+  `_offset` bigint(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `UPSERT_KEY` (`topic`,`_partition`,`custom_group`)
+) COMMENT='kafka偏移量表';
